@@ -1,0 +1,52 @@
+// Подключаем необходимые плагины
+plugins {
+    id 'java' // Плагин для работы с Java
+    id 'io.qameta.allure' version '2.8.1' // Плагин для интеграции Allure
+}
+
+// Указываем репозитории, откуда будут скачиваться библиотеки
+repositories {
+    mavenCentral()        // Основной репозиторий для Java-библиотек
+    gradlePluginPortal()  // Репозиторий для загрузки Gradle-плагинов
+}
+
+// Зависимости проекта
+dependencies {
+    // JUnit 5 для написания и запуска тестов
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+
+    // Allure для интеграции с JUnit 5 и создания отчетов
+    testImplementation 'io.qameta.allure:allure-junit5:2.18.1'
+
+    // Общие библиотеки Allure
+    implementation 'io.qameta.allure:allure-java-commons:2.18.1'
+
+    // Библиотека для генерации отчетов через командную строку
+    implementation 'io.qameta.allure:allure-commandline:2.18.1'
+}
+
+// Конфигурация задачи тестирования
+test {
+    useJUnitPlatform()    // Указываем, что используем платформу JUnit 5
+    finalizedBy 'allureReport' // После тестов автоматически запускаем генерацию отчета Allure
+}
+
+// Задача для генерации отчета Allure
+task allureReport(type: JavaExec) {
+    main = 'io.qameta.allure.CommandLine'
+    classpath = configurations.testRuntimeClasspath
+    args 'generate', "$buildDir/allure-results", '--output', "$buildDir/allure-report"
+}
+
+// Задача для запуска локального сервера и просмотра отчета
+task allureServe(type: JavaExec) {
+    main = 'io.qameta.allure.CommandLine'
+    classpath = configurations.testRuntimeClasspath
+    args 'serve', "$buildDir/allure-report"
+}
+
+// Настройка компилятора Java
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Указываем кодировку исходников (важно для русских символов)
+}
